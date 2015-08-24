@@ -1,0 +1,21 @@
+<div>
+	<h1>Edit Course</h1>
+	<form>
+		<label>Course Name:</label>
+		<input type="text" ng-model="courseToEdit.name" /> </br>
+		<label>Category:</label>
+		<select ng-model="courseToEdit.category">
+			<option>-Select-</option>
+			<option value="development">Development</option>
+			<option value="business">Business</option>
+			<option value="design">Design</option>
+			<option value="marketing">Marketing</option>
+		</select> </br>
+		<label>Timeline:</label>
+		<input type="number" ng-model="courseToEdit.timeline" /> </br>
+		<label>Price:</label>
+		<input type="number" ng-model="courseToEdit.price" /> </br>
+		<button ng-click="updateCourse(courseToEdit)">Update</button>
+		<button ng-click="toggleEditCourse(false)">Cancel</button>
+	</form>
+</div>
