@@ -3,13 +3,32 @@
 //Globals
 
 		var name = "myApp",
-			requires = [],
+			requires = ['ngRoute'],
 			myApp = null,
 			url ="https://api.mongolab.com/api/1/databases/my-academy/collections/course",
 			config = {params:{apiKey:"8w19XWoI1u9evDYqoWwR1on4TebbD_mo"}};
 			
 		
 		myApp = angular.module(name, requires);
+
+		myApp.config(function($routeProvider){
+			$routeProvider
+				.when("/courses",{
+					templateUrl:"partials/course_list.html",
+					controller:"CourseCtrl"
+				})
+				.when("/course/add",{
+					templateUrl:"partials/add_course.html",
+					controller:"CourseCtrl"
+				})
+				.when("/course/edit/:id",{
+					templateUrl:"partials/edit_course.html",
+					controller:"CourseCtrl"
+				})								
+				.otherwise({
+					redirectTo:"/courses"
+				});
+		});
 
 //START service		
 
@@ -70,7 +89,21 @@
 					var deferred = qDeferInit($q);
 					var id = course._id.$oid;
 
-				$http.delete(url+"/"+id,config)
+					$http.delete(url+"/"+id,config)
+							.success(function(data){
+								deferred.resolve(data);								
+							})
+							.error(function(err){
+								deferred.reject(err);							
+							});
+
+						return deferred.promise;					
+					},
+				getCourseById:function(id){
+
+					var deferred = qDeferInit($q);
+
+					$http.get(url+"/"+id,config)
 						.success(function(data){
 							deferred.resolve(data);								
 						})
@@ -79,6 +112,7 @@
 						});
 
 					return deferred.promise;					
+
 				}
 			}
 		});
@@ -86,12 +120,21 @@
 
 //START controller
 
-		myApp.controller("AppCtrl", function($scope,$http,courseDataSvc) {
+		myApp.controller("CourseCtrl", function($scope,courseDataSvc,$location,$routeParams) {
 		    $scope.courses = [];
 			
-			// variables for toggling view states
-			$scope.toggleAddCourseView = false;
-			$scope.toggleEditCourseView = false;
+
+			if($routeParams.id !== undefined){
+
+				courseDataSvc.getCourseById($routeParams.id).then(
+
+					function(data){
+						$scope.courseToEdit = data;
+					},
+					function error(e){
+					console.log("Error "+e);
+				});
+			}
 			
 			// to load all courses
 			$scope.loadCourses = function() {
@@ -109,6 +152,8 @@
 
 			}
 
+			$scope.loadCourses();
+
 			$scope.addCourse = function(course){
 
 				courseDataSvc.addCourse(course).then(
@@ -116,6 +161,7 @@
 					function(data){
 						console.log("added successfully "+JSON.stringify(data));
 						$scope.loadCourses();
+						$location.path("/courses");
 					},
 					function error(e){
 					console.log("Error "+e);
@@ -129,6 +175,7 @@
 					function(data){
 						console.log("updated successfully "+JSON.stringify(data));
 						$scope.loadCourses();
+						$location.path("/courses");						
 					},
 					function error(e){
 					console.log("Error "+e);
@@ -147,19 +194,7 @@
 					console.log("Error "+e);
 				});
 			}			
-
-			$scope.editCourse = function(course){
-				$scope.toggleEditCourseView = true;
-				$scope.courseToEdit = angular.copy(course);
-			}
 			
-			$scope.toggleAddCourse = function(flag) {
-				$scope.toggleAddCourseView = flag;
-			}
-			
-			$scope.toggleEditCourse = function(flag) {
-				$scope.toggleEditCourseView = flag;
-			}
 		});
 
 //END controller
